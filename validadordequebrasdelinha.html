@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificador de quebras de linha</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-red: #c00000;
+            --header-bg: #5b3fd6;
+            --border-color: #5b3fd6;
+            --inner-white: #ffffff;
+            --text-black: #1a1a1a;
+            --footer-bg: #0d0d0d;
+            --footer-text: #ffffff;
+            --highlight-bg: #fff3cd;
+            --highlight-border: #ffc107;
+            --accent-blue: #3d2fd6;
+        }
+
+        @font-face {
+            font-family: 'Bebas Neue';
+            src: local('Bebas Neue'), local('BebasNeue-Regular'), url('https://fonts.gstatic.com/s/bebasneue/v7/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2') format('woff2');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-red);
+            min-height: 100vh;
+            color: var(--text-black);
+            line-height: 1.5;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: center;
+            padding: clamp(1rem, 2vh, 1.5rem) clamp(1rem, 3vw, 2rem) 0;
+        }
+
+        .header-bar {
+            background-color: var(--header-bg);
+            border-radius: 9999px;
+            padding: clamp(0.5rem, 1vh, 0.75rem) clamp(1.5rem, 3vw, 2.5rem);
+            width: 62%;
+            max-width: 900px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-bar h1 {
+            font-family: 'Bebas Neue', 'BebasNeue-Regular', Impact, 'Arial Black', sans-serif;
+            font-size: clamp(1.125rem, 3vw, 1.625rem);
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: grid;
+            grid-template-columns: 36% 37%;
+            grid-template-rows: auto auto;
+            gap: clamp(1rem, 2.5vw, 2rem) clamp(2rem, 5vw, 4rem);
+            justify-content: center;
+            align-content: start;
+            padding: clamp(1.5rem, 3vh, 2.5rem) clamp(1.5rem, 3vw, 3rem) clamp(3rem, 6vh, 5rem);
+            min-height: calc(100vh - 120px);
+        }
+
+        /* Box Styles */
+        .box {
+            background-color: var(--border-color);
+            border-radius: clamp(16px, 3vw, 24px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .box-inner {
+            background-color: var(--inner-white);
+            border-radius: calc(clamp(16px, 3vw, 24px) - 8px);
+            margin: 8px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .box-title {
+            padding: clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.5rem);
+            font-size: clamp(0.875rem, 1.8vw, 1rem);
+            font-weight: 600;
+            text-align: center;
+            color: var(--text-black);
+            border-bottom: 2px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .box-content {
+            flex: 1;
+            padding: clamp(1rem, 2vh, 1.5rem);
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Box 1 - Input Area (Left, Large) */
+        .box-1 {
+            grid-row: 1 / 3;
+            grid-column: 1;
+            min-height: 60vh;
+            height: 60vh;
+        }
+
+        .box-1 .box-content {
+            padding: 0;
+        }
+
+        .textarea-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        #inputTextarea {
+            flex: 1;
+            border: none;
+            outline: none;
+            resize: none;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+            font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+            line-height: 1.6;
+            padding: clamp(1rem, 2vh, 1.25rem);
+            color: var(--text-black);
+            background: transparent;
+            min-height: 0;
+        }
+
+        #inputTextarea::placeholder {
+            color: #999;
+        }
+
+        .box-1-actions {
+            display: flex;
+            justify-content: center;
+            gap: clamp(0.75rem, 1.5vw, 1rem);
+            padding: clamp(0.75rem, 1.5vh, 1rem);
+            border-top: 2px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .btn {
+            background-color: var(--border-color);
+            color: white;
+            border: none;
+            border-radius: 9999px;
+            padding: clamp(0.5rem, 1vh, 0.625rem) clamp(1.25rem, 2.5vw, 1.75rem);
+            font-size: clamp(0.8rem, 1.5vw, 0.875rem);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            white-space: nowrap;
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: #4a2ec4;
+        }
+
+        .btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--border-color);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: var(--border-color);
+            color: white;
+        }
+
+        /* Box 2 - Identified Line (Top Right) */
+        .box-2 {
+            grid-row: 1;
+            grid-column: 2;
+            min-height: 22vh;
+        }
+
+        .identified-line {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: clamp(1rem, 2vh, 1.5rem);
+        }
+
+        .line-number-badge {
+            display: inline-block;
+            background-color: var(--border-color);
+            color: white;
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: clamp(0.7rem, 1.3vw, 0.8rem);
+            font-weight: 600;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+            margin-bottom: clamp(0.75rem, 1.5vh, 1rem);
+            width: fit-content;
+            align-self: center;
+        }
+
+        .line-content {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            line-height: 1.5;
+            color: var(--text-black);
+            word-break: break-all;
+            white-space: pre-wrap;
+            text-align: center;
+            padding: clamp(0.5rem, 1vh, 0.75rem);
+            background-color: var(--highlight-bg);
+            border: 2px solid var(--highlight-border);
+            border-radius: clamp(8px, 1.5vw, 12px);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #888;
+            text-align: center;
+            gap: 0.5rem;
+        }
+
+        .empty-state svg {
+            width: clamp(2rem, 4vw, 3rem);
+            height: clamp(2rem, 4vw, 3rem);
+            opacity: 0.5;
+        }
+
+        /* Box 3 - Context (Bottom Right) */
+        .box-3 {
+            grid-row: 2;
+            grid-column: 2;
+            min-height: 35vh;
+        }
+
+        .context-lines {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .context-line {
+            display: flex;
+            gap: clamp(0.75rem, 1.5vw, 1rem);
+            padding: clamp(0.375rem, 0.75vh, 0.5rem) clamp(0.5rem, 1vw, 0.75rem);
+            border-radius: clamp(6px, 1vw, 8px);
+            transition: background-color 0.15s ease;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+            font-size: clamp(0.7rem, 1.3vw, 0.8rem);
+            line-height: 1.5;
+        }
+
+        .context-line:hover {
+            background-color: #f5f5f5;
+        }
+
+        .context-line.highlighted {
+            background-color: var(--highlight-bg);
+            border: 2px solid var(--highlight-border);
+        }
+
+        .line-num {
+            color: #888;
+            font-weight: 500;
+            min-width: clamp(2.5rem, 4vw, 3.5rem);
+            text-align: right;
+            user-select: none;
+            flex-shrink: 0;
+            padding-top: 0.125rem;
+        }
+
+        .context-line.highlighted .line-num {
+            color: var(--accent-blue);
+            font-weight: 700;
+        }
+
+        .line-text {
+            flex: 1;
+            word-break: break-all;
+            white-space: pre-wrap;
+            color: var(--text-black);
+        }
+
+        .context-line.highlighted .line-text {
+            color: var(--accent-blue);
+            font-weight: 500;
+        }
+
+        /* Navigation Controls */
+        .nav-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: clamp(0.75rem, 1.5vw, 1rem);
+            padding: clamp(0.75rem, 1.5vh, 1rem);
+            border-top: 2px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .nav-info {
+            font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Validation Criteria */
+        .criteria-panel {
+            padding: clamp(0.75rem, 1.5vh, 1rem);
+            border-top: 2px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .criteria-title {
+            font-size: clamp(0.7rem, 1.3vw, 0.8rem);
+            font-weight: 600;
+            color: var(--text-black);
+            margin-bottom: clamp(0.5rem, 1vh, 0.75rem);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .criteria-options {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.375rem, 0.75vh, 0.5rem);
+        }
+
+        .criteria-option {
+            display: flex;
+            align-items: center;
+            gap: clamp(0.5rem, 1vw, 0.75rem);
+            font-size: clamp(0.7rem, 1.3vw, 0.8rem);
+            color: var(--text-black);
+            cursor: pointer;
+        }
+
+        .criteria-option input[type="checkbox"] {
+            width: clamp(1rem, 2vw, 1.125rem);
+            height: clamp(1rem, 2vw, 1.125rem);
+            accent-color: var(--border-color);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .criteria-option label {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: clamp(0.75rem, 1.5vh, 1.25rem);
+            right: clamp(1rem, 2vw, 1.5rem);
+            z-index: 100;
+        }
+
+        .footer-bar {
+            background-color: var(--footer-bg);
+            border-radius: 9999px;
+            padding: clamp(0.375rem, 0.75vh, 0.5rem) clamp(1rem, 2vw, 1.25rem);
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .footer-bar a {
+            color: var(--footer-text);
+            text-decoration: none;
+            font-size: clamp(0.7rem, 1.3vw, 0.8rem);
+            font-weight: 500;
+            transition: opacity 0.2s ease;
+        }
+
+        .footer-bar a:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                gap: clamp(1rem, 2vh, 1.5rem);
+                padding: clamp(1rem, 2vh, 1.5rem);
+            }
+
+            .box-1 {
+                grid-row: 1;
+                grid-column: 1;
+                min-height: 50vh;
+                height: 50vh;
+            }
+
+            .box-2 {
+                grid-row: 2;
+                grid-column: 1;
+                min-height: 18vh;
+            }
+
+            .box-3 {
+                grid-row: 3;
+                grid-column: 1;
+                min-height: 30vh;
+            }
+
+            .header-bar {
+                width: 85%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header-bar {
+                width: 95%;
+                border-radius: clamp(12px, 3vw, 16px);
+            }
+
+            .main-container {
+                padding: clamp(0.75rem, 2vw, 1rem);
+                gap: clamp(0.75rem, 1.5vh, 1rem);
+            }
+
+            .box {
+                border-radius: clamp(12px, 3vw, 16px);
+            }
+
+            .box-inner {
+                border-radius: calc(clamp(12px, 3vw, 16px) - 6px);
+                margin: 6px;
+            }
+
+            .footer {
+                bottom: clamp(0.5rem, 1vh, 0.75rem);
+                right: clamp(0.5rem, 1vw, 0.75rem);
+                left: clamp(0.5rem, 1vw, 0.75rem);
+            }
+
+            .footer-bar {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .box-1 {
+                min-height: 40vh;
+                height: 40vh;
+            }
+
+            .box-2 {
+                min-height: 15vh;
+            }
+
+            .box-3 {
+                min-height: 25vh;
+            }
+
+            .criteria-options {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .box-title {
+                font-size: 0.8rem;
+                padding: 0.625rem;
+            }
+
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.75rem;
+            }
+
+            .nav-controls {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4a2ec4;
+        }
+
+        /* Focus States */
+        .btn:focus-visible,
+        #inputTextarea:focus-visible,
+        .criteria-option input:focus-visible {
+            outline: 3px solid var(--highlight-border);
+            outline-offset: 2px;
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-bar" role="banner">
+            <h1>VERIFICADOR DE QUEBRAS DE LINHA</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container" role="main">
+        <!-- Box 1: Input Area -->
+        <section class="box box-1" aria-labelledby="box1-title">
+            <div class="box-inner">
+                <h2 class="box-title" id="box1-title">Entrada dos dados posicionais</h2>
+                <div class="box-content">
+                    <div class="textarea-wrapper">
+                        <textarea
+                            id="inputTextarea"
+                            placeholder="Cole aqui o conteúdo completo do arquivo de integração&#10;As quebras de linha, espaços e caracteres serão preservados fielmente&#10;&#10;Exemplo de formato posicional:&#10;0001JOÃO SILVA          25 1234.56&#10;0002MARIA SANTOS         30 9876.54&#10;0003PEDRO OLIVEIRA       45 5555.00"
+                            aria-label="Área de texto para colar o conteúdo do arquivo posicional"
+                            spellcheck="false"
+                        ></textarea>
+                    </div>
+                    <div class="box-1-actions">
+                        <button class="btn" id="btnAnalyze" aria-label="Analisar o texto em busca de quebras de linha suspeitas">
+                            Analisar
+                        </button>
+                        <button class="btn btn-secondary" id="btnClear" aria-label="Limpar a área de texto">
+                            Limpar
+                        </button>
+                    </div>
+                </div>
+                <div class="criteria-panel">
+                    <div class="criteria-title">Critérios de validação</div>
+                    <div class="criteria-options">
+                        <div class="criteria-option">
+                            <input type="checkbox" id="criteriaIndent" checked>
+                            <label for="criteriaIndent">Detectar indentação inesperada (espaços/tabs no início da linha)</label>
+                        </div>
+                        <div class="criteria-option">
+                            <input type="checkbox" id="criteriaFixedWidth" checked>
+                            <label for="criteriaFixedWidth">Largura fixa por registro (mesmo número de caracteres)</label>
+                        </div>
+                        <div class="criteria-option">
+                            <input type="checkbox" id="criteriaEmptyLines" checked>
+                            <label for="criteriaEmptyLines">Linhas vazias entre registros</label>
+                        </div>
+                        <div class="criteria-option">
+                            <input type="checkbox" id="criteriaTruncated" checked>
+                            <label for="criteriaTruncated">Linhas truncadas (corte abrupto)</label>
+                        </div>
+                        <div class="criteria-option">
+                            <input type="checkbox" id="criteriaEncoding" checked>
+                            <label for="criteriaEncoding">Caracteres de codificação suspeitos (�, \r solto, controles)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Box 2: Identified Line -->
+        <section class="box box-2" aria-labelledby="box2-title" aria-live="polite">
+            <div class="box-inner">
+                <h2 class="box-title" id="box2-title">Linha identificada</h2>
+                <div class="box-content">
+                    <div id="identifiedLineContainer">
+                        <div class="empty-state" id="emptyState2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            <span>Nenhuma ocorrência detectada</span>
+                            <small>Clique em "Analisar" após colar o conteúdo</small>
+                        </div>
+                        <div class="identified-line" id="identifiedLineDisplay" style="display: none;">
+                            <span class="line-number-badge" id="identifiedLineNumber">Linha 0</span>
+                            <div class="line-content" id="identifiedLineContent"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Box 3: Context -->
+        <section class="box box-3" aria-labelledby="box3-title" aria-live="polite">
+            <div class="box-inner">
+                <h2 class="box-title" id="box3-title">Contexto da ocorrência</h2>
+                <div class="box-content">
+                    <div class="context-lines" id="contextLinesContainer" role="list" aria-label="Linhas de contexto ao redor da ocorrência">
+                        <div class="empty-state" id="emptyState3" style="height: 100%;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                            </svg>
+                            <span>Selecione uma ocorrência para ver o contexto</span>
+                        </div>
+                    </div>
+                    <div class="nav-controls" id="navControls" style="display: none;">
+                        <button class="btn btn-secondary" id="btnPrev" aria-label="Ocorrência anterior" disabled>
+                            ← Anterior
+                        </button>
+                        <span class="nav-info" id="navInfo">1 de 1</span>
+                        <button class="btn btn-secondary" id="btnNext" aria-label="Próxima ocorrência" disabled>
+                            Próxima →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <div class="footer-bar">
+            <a href="https://github.com/pauludelimaa" target="_blank" rel="noopener noreferrer">
+                Desenvolvido por https://github.com/pauludelimaa
+            </a>
+        </div>
+    </footer>
+
+    <script>
+        // Estado da aplicação
+        const state = {
+            lines: [],
+            issues: [],
+            currentIssueIndex: -1,
+            criteria: {
+                indent: true,
+                fixedWidth: true,
+                emptyLines: true,
+                truncated: true,
+                encoding: true
+            }
+        };
+
+        // Elementos DOM
+        const elements = {
+            textarea: document.getElementById('inputTextarea'),
+            btnAnalyze: document.getElementById('btnAnalyze'),
+            btnClear: document.getElementById('btnClear'),
+            btnPrev: document.getElementById('btnPrev'),
+            btnNext: document.getElementById('btnNext'),
+            identifiedLineContainer: document.getElementById('identifiedLineContainer'),
+            identifiedLineDisplay: document.getElementById('identifiedLineDisplay'),
+            identifiedLineNumber: document.getElementById('identifiedLineNumber'),
+            identifiedLineContent: document.getElementById('identifiedLineContent'),
+            contextLinesContainer: document.getElementById('contextLinesContainer'),
+            emptyState2: document.getElementById('emptyState2'),
+            emptyState3: document.getElementById('emptyState3'),
+            navControls: document.getElementById('navControls'),
+            navInfo: document.getElementById('navInfo'),
+            criteriaIndent: document.getElementById('criteriaIndent'),
+            criteriaFixedWidth: document.getElementById('criteriaFixedWidth'),
+            criteriaEmptyLines: document.getElementById('criteriaEmptyLines'),
+            criteriaTruncated: document.getElementById('criteriaTruncated'),
+            criteriaEncoding: document.getElementById('criteriaEncoding')
+        };
+
+        // Inicialização
+        function init() {
+            bindEvents();
+            loadExample();
+        }
+
+        function bindEvents() {
+            elements.btnAnalyze.addEventListener('click', analyze);
+            elements.btnClear.addEventListener('click', clearAll);
+            elements.btnPrev.addEventListener('click', showPreviousIssue);
+            elements.btnNext.addEventListener('click', showNextIssue);
+
+            // Critérios
+            elements.criteriaIndent.addEventListener('change', updateCriteria);
+            elements.criteriaFixedWidth.addEventListener('change', updateCriteria);
+            elements.criteriaEmptyLines.addEventListener('change', updateCriteria);
+            elements.criteriaTruncated.addEventListener('change', updateCriteria);
+            elements.criteriaEncoding.addEventListener('change', updateCriteria);
+
+            // Re-analisar ao mudar critérios se já houver texto
+            [elements.criteriaIndent, elements.criteriaFixedWidth, elements.criteriaEmptyLines, elements.criteriaTruncated, elements.criteriaEncoding].forEach(el => {
+                el.addEventListener('change', () => {
+                    if (elements.textarea.value.trim()) {
+                        analyze();
+                    }
+                });
+            });
+
+            // Atalhos de teclado
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    analyze();
+                }
+                if (e.key === 'F3' || (e.ctrlKey && e.key === 'n')) {
+                    e.preventDefault();
+                    showNextIssue();
+                }
+                if (e.key === 'F3' && e.shiftKey || (e.ctrlKey && e.shiftKey && e.key === 'n')) {
+                    e.preventDefault();
+                    showPreviousIssue();
+                }
+            });
+        }
+
+        function updateCriteria() {
+            state.criteria = {
+                indent: elements.criteriaIndent.checked,
+                fixedWidth: elements.criteriaFixedWidth.checked,
+                emptyLines: elements.criteriaEmptyLines.checked,
+                truncated: elements.criteriaTruncated.checked,
+                encoding: elements.criteriaEncoding.checked
+            };
+        }
+
+        function loadExample() {
+            const example = `0001JOÃO SILVA          25 1234.56
+0002MARIA SANTOS         30 9876.54
+   0003PEDRO OLIVEIRA       45 5555.00
+0004ANA COSTA            28
+0005CARLOS FERREIRA      35 7777.77
+0006FERNANDA LIMA        42 8888.88
+0007RICARDO ALVES        33 9999.99`;
+            elements.textarea.value = example;
+        }
+
+        function clearAll() {
+            elements.textarea.value = '';
+            resetResults();
+            elements.textarea.focus();
+        }
+
+        function resetResults() {
+            state.lines = [];
+            state.issues = [];
+            state.currentIssueIndex = -1;
+            elements.emptyState2.style.display = 'flex';
+            elements.identifiedLineDisplay.style.display = 'none';
+            elements.emptyState3.style.display = 'flex';
+            elements.contextLinesContainer.innerHTML = '';
+            elements.contextLinesContainer.appendChild(elements.emptyState3);
+            elements.navControls.style.display = 'none';
+        }
+
+        function analyze() {
+            const text = elements.textarea.value;
+            if (!text.trim()) {
+                alert('Por favor, cole o conteúdo do arquivo na área de texto.');
+                elements.textarea.focus();
+                return;
+            }
+
+            // Preservar quebras de linha originais
+            state.lines = text.split('\n');
+            state.issues = [];
+            state.currentIssueIndex = -1;
+
+            // Calcular a coluna esperada (menor índice de primeiro caractere não-espaço entre linhas não-vazias)
+            let expectedColumn = null;
+            if (state.criteria.indent) {
+                const nonEmptyLines = state.lines.filter(l => l.trim().length > 0);
+                if (nonEmptyLines.length > 0) {
+                    const firstCharPositions = nonEmptyLines.map(line => line.search(/\S/));
+                    expectedColumn = Math.min(...firstCharPositions.filter(pos => pos >= 0));
+                }
+            }
+
+            // Analisar cada linha
+            state.lines.forEach((line, index) => {
+                const lineNum = index + 1;
+                const issues = checkLine(line, lineNum, state.lines, expectedColumn);
+                if (issues.length > 0) {
+                    state.issues.push({
+                        lineNumber: lineNum,
+                        lineContent: line,
+                        issues: issues
+                    });
+                }
+            });
+
+            if (state.issues.length > 0) {
+                state.currentIssueIndex = 0;
+                displayCurrentIssue();
+            } else {
+                showNoIssuesFound();
+            }
+        }
+
+        function checkLine(line, lineNum, allLines, expectedColumn) {
+            const issues = [];
+            const criteria = state.criteria;
+
+            // Critério 1: Indentação inesperada (espaços/tabs no início quando deveria começar na coluna 0)
+            if (criteria.indent && line.trim().length > 0 && expectedColumn !== null) {
+                const firstCharPos = line.search(/\S/);
+                if (firstCharPos > expectedColumn) {
+                    const indentSpaces = firstCharPos - expectedColumn;
+                    const indentChar = line.charAt(0) === '\t' ? 'tabs' : 'espaços';
+                    issues.push({
+                        type: 'indent',
+                        message: `Indentação inesperada: ${indentSpaces} ${indentChar} antes do conteúdo (coluna esperada: ${expectedColumn}, encontrada: ${firstCharPos})`,
+                        severity: 'error',
+                        detail: { expectedColumn, foundColumn: firstCharPos, indentSpaces }
+                    });
+                }
+            }
+
+            // Critério 2: Largura fixa (todas as linhas não-vazias devem ter mesmo comprimento)
+            if (criteria.fixedWidth && line.trim().length > 0) {
+                const nonEmptyLines = allLines.filter(l => l.trim().length > 0);
+                if (nonEmptyLines.length > 0) {
+                    const expectedLength = nonEmptyLines[0].length;
+                    if (line.length !== expectedLength) {
+                        issues.push({
+                            type: 'fixedWidth',
+                            message: `Largura inconsistente (esperado ${expectedLength}, encontrado ${line.length})`,
+                            severity: 'warning'
+                        });
+                    }
+                }
+            }
+
+            // Critério 3: Linhas vazias inesperadas
+            if (criteria.emptyLines && line.trim().length === 0) {
+                const prevLine = allLines[lineNum - 2];
+                const nextLine = allLines[lineNum];
+                const hasContentBefore = prevLine !== undefined && prevLine.trim().length > 0;
+                const hasContentAfter = nextLine !== undefined && nextLine.trim().length > 0;
+                if (hasContentBefore && hasContentAfter) {
+                    issues.push({
+                        type: 'emptyLines',
+                        message: 'Linha vazia inesperada entre registros',
+                        severity: 'error'
+                    });
+                }
+            }
+
+            // Critério 4: Linhas truncadas
+            if (criteria.truncated && line.trim().length > 0) {
+                const nonEmptyLines = allLines.filter(l => l.trim().length > 0);
+                if (nonEmptyLines.length > 1) {
+                    const endsWithNumber = /[\d.,]\s*$/.test(line);
+                    const othersEndWithNumber = nonEmptyLines.filter(l => l !== line).every(l => /[\d.,]\s*$/.test(l));
+                    if (othersEndWithNumber && !endsWithNumber && line.length < nonEmptyLines[0].length) {
+                        issues.push({
+                            type: 'truncated',
+                            message: 'Possível linha truncada (não termina com valor numérico esperado)',
+                            severity: 'error'
+                        });
+                    }
+                }
+            }
+
+            // Critério 5: Caracteres de codificação suspeitos
+            if (criteria.encoding) {
+                const suspiciousChars = line.match(/[�\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g);
+                if (suspiciousChars) {
+                    issues.push({
+                        type: 'encoding',
+                        message: `Caracteres suspeitos: ${[...new Set(suspiciousChars)].map(c => c === '\r' ? '\\r' : c === '�' ? '�' : `U+${c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')}`).join(', ')}`,
+                        severity: 'error'
+                    });
+                }
+                if (line.includes('\r') && !line.includes('\r\n')) {
+                    issues.push({
+                        type: 'encoding',
+                        message: 'CR (\\r) solto detectado - quebra de linha Mac OS 9/Windows misturada',
+                        severity: 'warning'
+                    });
+                }
+            }
+
+            return issues;
+        }
+
+        function displayCurrentIssue() {
+            if (state.issues.length === 0) return;
+
+            const issue = state.issues[state.currentIssueIndex];
+            const lineNum = issue.lineNumber;
+            const lineContent = issue.lineContent;
+
+            // Box 2 - Linha identificada
+            elements.emptyState2.style.display = 'none';
+            elements.identifiedLineDisplay.style.display = 'flex';
+            elements.identifiedLineNumber.textContent = `Linha ${lineNum}`;
+            elements.identifiedLineContent.textContent = lineContent || '(linha vazia)';
+
+            // Box 3 - Contexto
+            elements.emptyState3.style.display = 'none';
+            renderContext(lineNum);
+
+            // Navegação
+            elements.navControls.style.display = 'flex';
+            updateNavigation();
+        }
+
+        function renderContext(centerLineNum) {
+            const container = elements.contextLinesContainer;
+            container.innerHTML = '';
+
+            const start = Math.max(1, centerLineNum - 3);
+            const end = Math.min(state.lines.length, centerLineNum + 3);
+
+            for (let i = start; i <= end; i++) {
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'context-line' + (i === centerLineNum ? ' highlighted' : '');
+                lineDiv.setAttribute('role', 'listitem');
+                lineDiv.setAttribute('data-line', i);
+
+                const numSpan = document.createElement('span');
+                numSpan.className = 'line-num';
+                numSpan.textContent = i.toString().padStart(4, '0');
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'line-text';
+                textSpan.textContent = state.lines[i - 1] || '(fim do arquivo)';
+
+                lineDiv.appendChild(numSpan);
+                lineDiv.appendChild(textSpan);
+                container.appendChild(lineDiv);
+            }
+        }
+
+        function updateNavigation() {
+            elements.navInfo.textContent = `${state.currentIssueIndex + 1} de ${state.issues.length}`;
+            elements.btnPrev.disabled = state.currentIssueIndex === 0;
+            elements.btnNext.disabled = state.currentIssueIndex === state.issues.length - 1;
+        }
+
+        function showNextIssue() {
+            if (state.currentIssueIndex < state.issues.length - 1) {
+                state.currentIssueIndex++;
+                displayCurrentIssue();
+            }
+        }
+
+        function showPreviousIssue() {
+            if (state.currentIssueIndex > 0) {
+                state.currentIssueIndex--;
+                displayCurrentIssue();
+            }
+        }
+
+        function showNoIssuesFound() {
+            elements.emptyState2.style.display = 'flex';
+            elements.identifiedLineDisplay.style.display = 'none';
+            elements.emptyState2.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span>Nenhuma quebra de linha suspeita detectada</span>
+                <small>O arquivo parece consistente com os critérios selecionados</small>
+            `;
+
+            elements.emptyState3.style.display = 'flex';
+            elements.contextLinesContainer.innerHTML = '';
+            elements.contextLinesContainer.appendChild(elements.emptyState3);
+            elements.navControls.style.display = 'none';
+        }
+
+        // Iniciar
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
