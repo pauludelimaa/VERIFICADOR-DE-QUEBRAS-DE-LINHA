@@ -1,1021 +1,499 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificador de quebras de linha</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --bg-red: #c00000;
-            --header-bg: #5b3fd6;
-            --border-color: #5b3fd6;
-            --inner-white: #ffffff;
-            --text-black: #1a1a1a;
-            --footer-bg: #0d0d0d;
-            --footer-text: #ffffff;
-            --highlight-bg: #fff3cd;
-            --highlight-border: #ffc107;
-            --accent-blue: #3d2fd6;
-        }
-
-        @font-face {
-            font-family: 'Bebas Neue';
-            src: local('Bebas Neue'), local('BebasNeue-Regular'), url('https://fonts.gstatic.com/s/bebasneue/v7/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2') format('woff2');
-            font-weight: 700;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: var(--bg-red);
-            min-height: 100vh;
-            color: var(--text-black);
-            line-height: 1.5;
-        }
-
-        /* Header */
-        .header {
-            display: flex;
-            justify-content: center;
-            padding: clamp(1rem, 2vh, 1.5rem) clamp(1rem, 3vw, 2rem) 0;
-        }
-
-        .header-bar {
-            background-color: var(--header-bg);
-            border-radius: 9999px;
-            padding: clamp(0.5rem, 1vh, 0.75rem) clamp(1.5rem, 3vw, 2.5rem);
-            width: 62%;
-            max-width: 900px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .header-bar h1 {
-            font-family: 'Bebas Neue', 'BebasNeue-Regular', Impact, 'Arial Black', sans-serif;
-            font-size: clamp(1.125rem, 3vw, 1.625rem);
-            font-weight: 700;
-            color: #ffffff;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            line-height: 1.2;
-        }
-
-        /* Main Layout */
-        .main-container {
-            display: grid;
-            grid-template-columns: 36% 37%;
-            grid-template-rows: auto auto;
-            gap: clamp(1rem, 2.5vw, 2rem) clamp(2rem, 5vw, 4rem);
-            justify-content: center;
-            align-content: start;
-            padding: clamp(1.5rem, 3vh, 2.5rem) clamp(1.5rem, 3vw, 3rem) clamp(3rem, 6vh, 5rem);
-            min-height: calc(100vh - 120px);
-        }
-
-        /* Box Styles */
-        .box {
-            background-color: var(--border-color);
-            border-radius: clamp(16px, 3vw, 24px);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .box-inner {
-            background-color: var(--inner-white);
-            border-radius: calc(clamp(16px, 3vw, 24px) - 8px);
-            margin: 8px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            min-height: 0;
-        }
-
-        .box-title {
-            padding: clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.5rem);
-            font-size: clamp(0.875rem, 1.8vw, 1rem);
-            font-weight: 600;
-            text-align: center;
-            color: var(--text-black);
-            border-bottom: 2px solid var(--border-color);
-            flex-shrink: 0;
-        }
-
-        .box-content {
-            flex: 1;
-            padding: clamp(1rem, 2vh, 1.5rem);
-            overflow: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Box 1 - Input Area (Left, Large) */
-        .box-1 {
-            grid-row: 1 / 3;
-            grid-column: 1;
-            min-height: 60vh;
-            height: 60vh;
-        }
-
-        .box-1 .box-content {
-            padding: 0;
-        }
-
-        .textarea-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
-
-        #inputTextarea {
-            flex: 1;
-            border: none;
-            outline: none;
-            resize: none;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-            font-size: clamp(0.75rem, 1.5vw, 0.875rem);
-            line-height: 1.6;
-            padding: clamp(1rem, 2vh, 1.25rem);
-            color: var(--text-black);
-            background: transparent;
-            min-height: 0;
-        }
-
-        #inputTextarea::placeholder {
-            color: #999;
-        }
-
-        .box-1-actions {
-            display: flex;
-            justify-content: center;
-            gap: clamp(0.75rem, 1.5vw, 1rem);
-            padding: clamp(0.75rem, 1.5vh, 1rem);
-            border-top: 2px solid var(--border-color);
-            flex-shrink: 0;
-        }
-
-        .btn {
-            background-color: var(--border-color);
-            color: white;
-            border: none;
-            border-radius: 9999px;
-            padding: clamp(0.5rem, 1vh, 0.625rem) clamp(1.25rem, 2.5vw, 1.75rem);
-            font-size: clamp(0.8rem, 1.5vw, 0.875rem);
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-            white-space: nowrap;
-        }
-
-        .btn:hover:not(:disabled) {
-            background-color: #4a2ec4;
-        }
-
-        .btn:active:not(:disabled) {
-            transform: scale(0.98);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            color: var(--border-color);
-            border: 2px solid var(--border-color);
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            background-color: var(--border-color);
-            color: white;
-        }
-
-        /* Box 2 - Identified Line (Top Right) */
-        .box-2 {
-            grid-row: 1;
-            grid-column: 2;
-            min-height: 22vh;
-        }
-
-        .identified-line {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: clamp(1rem, 2vh, 1.5rem);
-        }
-
-        .line-number-badge {
-            display: inline-block;
-            background-color: var(--border-color);
-            color: white;
-            border-radius: 9999px;
-            padding: 0.25rem 0.75rem;
-            font-size: clamp(0.7rem, 1.3vw, 0.8rem);
-            font-weight: 600;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-            margin-bottom: clamp(0.75rem, 1.5vh, 1rem);
-            width: fit-content;
-            align-self: center;
-        }
-
-        .line-content {
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
-            line-height: 1.5;
-            color: var(--text-black);
-            word-break: break-all;
-            white-space: pre-wrap;
-            text-align: center;
-            padding: clamp(0.5rem, 1vh, 0.75rem);
-            background-color: var(--highlight-bg);
-            border: 2px solid var(--highlight-border);
-            border-radius: clamp(8px, 1.5vw, 12px);
-        }
-
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: #888;
-            text-align: center;
-            gap: 0.5rem;
-        }
-
-        .empty-state svg {
-            width: clamp(2rem, 4vw, 3rem);
-            height: clamp(2rem, 4vw, 3rem);
-            opacity: 0.5;
-        }
-
-        /* Box 3 - Context (Bottom Right) */
-        .box-3 {
-            grid-row: 2;
-            grid-column: 2;
-            min-height: 35vh;
-        }
-
-        .context-lines {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-            overflow-y: auto;
-            padding-right: 0.5rem;
-        }
-
-        .context-line {
-            display: flex;
-            gap: clamp(0.75rem, 1.5vw, 1rem);
-            padding: clamp(0.375rem, 0.75vh, 0.5rem) clamp(0.5rem, 1vw, 0.75rem);
-            border-radius: clamp(6px, 1vw, 8px);
-            transition: background-color 0.15s ease;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-            font-size: clamp(0.7rem, 1.3vw, 0.8rem);
-            line-height: 1.5;
-        }
-
-        .context-line:hover {
-            background-color: #f5f5f5;
-        }
-
-        .context-line.highlighted {
-            background-color: var(--highlight-bg);
-            border: 2px solid var(--highlight-border);
-        }
-
-        .line-num {
-            color: #888;
-            font-weight: 500;
-            min-width: clamp(2.5rem, 4vw, 3.5rem);
-            text-align: right;
-            user-select: none;
-            flex-shrink: 0;
-            padding-top: 0.125rem;
-        }
-
-        .context-line.highlighted .line-num {
-            color: var(--accent-blue);
-            font-weight: 700;
-        }
-
-        .line-text {
-            flex: 1;
-            word-break: break-all;
-            white-space: pre-wrap;
-            color: var(--text-black);
-        }
-
-        .context-line.highlighted .line-text {
-            color: var(--accent-blue);
-            font-weight: 500;
-        }
-
-        /* Navigation Controls */
-        .nav-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: clamp(0.75rem, 1.5vw, 1rem);
-            padding: clamp(0.75rem, 1.5vh, 1rem);
-            border-top: 2px solid var(--border-color);
-            flex-shrink: 0;
-        }
-
-        .nav-info {
-            font-size: clamp(0.75rem, 1.5vw, 0.875rem);
-            color: #666;
-            font-weight: 500;
-        }
-
-        /* Validation Criteria */
-        .criteria-panel {
-            padding: clamp(0.75rem, 1.5vh, 1rem);
-            border-top: 2px solid var(--border-color);
-            flex-shrink: 0;
-        }
-
-        .criteria-title {
-            font-size: clamp(0.7rem, 1.3vw, 0.8rem);
-            font-weight: 600;
-            color: var(--text-black);
-            margin-bottom: clamp(0.5rem, 1vh, 0.75rem);
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .criteria-options {
-            display: flex;
-            flex-direction: column;
-            gap: clamp(0.375rem, 0.75vh, 0.5rem);
-        }
-
-        .criteria-option {
-            display: flex;
-            align-items: center;
-            gap: clamp(0.5rem, 1vw, 0.75rem);
-            font-size: clamp(0.7rem, 1.3vw, 0.8rem);
-            color: var(--text-black);
-            cursor: pointer;
-        }
-
-        .criteria-option input[type="checkbox"] {
-            width: clamp(1rem, 2vw, 1.125rem);
-            height: clamp(1rem, 2vw, 1.125rem);
-            accent-color: var(--border-color);
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-
-        .criteria-option label {
-            cursor: pointer;
-            user-select: none;
-        }
-
-        /* Footer */
-        .footer {
-            position: fixed;
-            bottom: clamp(0.75rem, 1.5vh, 1.25rem);
-            right: clamp(1rem, 2vw, 1.5rem);
-            z-index: 100;
-        }
-
-        .footer-bar {
-            background-color: var(--footer-bg);
-            border-radius: 9999px;
-            padding: clamp(0.375rem, 0.75vh, 0.5rem) clamp(1rem, 2vw, 1.25rem);
-            display: inline-flex;
-            align-items: center;
-            white-space: nowrap;
-        }
-
-        .footer-bar a {
-            color: var(--footer-text);
-            text-decoration: none;
-            font-size: clamp(0.7rem, 1.3vw, 0.8rem);
-            font-weight: 500;
-            transition: opacity 0.2s ease;
-        }
-
-        .footer-bar a:hover {
-            opacity: 0.8;
-            text-decoration: underline;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .main-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto auto;
-                gap: clamp(1rem, 2vh, 1.5rem);
-                padding: clamp(1rem, 2vh, 1.5rem);
-            }
-
-            .box-1 {
-                grid-row: 1;
-                grid-column: 1;
-                min-height: 50vh;
-                height: 50vh;
-            }
-
-            .box-2 {
-                grid-row: 2;
-                grid-column: 1;
-                min-height: 18vh;
-            }
-
-            .box-3 {
-                grid-row: 3;
-                grid-column: 1;
-                min-height: 30vh;
-            }
-
-            .header-bar {
-                width: 85%;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .header-bar {
-                width: 95%;
-                border-radius: clamp(12px, 3vw, 16px);
-            }
-
-            .main-container {
-                padding: clamp(0.75rem, 2vw, 1rem);
-                gap: clamp(0.75rem, 1.5vh, 1rem);
-            }
-
-            .box {
-                border-radius: clamp(12px, 3vw, 16px);
-            }
-
-            .box-inner {
-                border-radius: calc(clamp(12px, 3vw, 16px) - 6px);
-                margin: 6px;
-            }
-
-            .footer {
-                bottom: clamp(0.5rem, 1vh, 0.75rem);
-                right: clamp(0.5rem, 1vw, 0.75rem);
-                left: clamp(0.5rem, 1vw, 0.75rem);
-            }
-
-            .footer-bar {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .box-1 {
-                min-height: 40vh;
-                height: 40vh;
-            }
-
-            .box-2 {
-                min-height: 15vh;
-            }
-
-            .box-3 {
-                min-height: 25vh;
-            }
-
-            .criteria-options {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 400px) {
-            .box-title {
-                font-size: 0.8rem;
-                padding: 0.625rem;
-            }
-
-            .btn {
-                padding: 0.5rem 1rem;
-                font-size: 0.75rem;
-            }
-
-            .nav-controls {
-                flex-wrap: wrap;
-            }
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-color);
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verificador de Quebras de Linha - Otimizado</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg-red:#8f0f1e;--header-bg:#00263b;--border-color:#00263b;--inner-white:#eff0f2;--text-black:#1a1a1a;--footer-bg:#0d0d0d;--footer-text:#fff;--highlight-bg:#fff3cd;--highlight-border:#ffc107;--accent-blue:#3d2fd6;--success:#16a34a;--danger:#dc2626}
+@font-face{font-family:'Bebas Neue';src:local('Bebas Neue'),url('https://fonts.gstatic.com/s/bebasneue/v7/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2') format('woff2');font-weight:700;font-display:swap}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg-red);min-height:100vh;color:var(--text-black);line-height:1.5}
+.header{display:flex;justify-content:center;padding:clamp(1rem,2vh,1.5rem) clamp(1rem,3vw,2rem) 0}
+.header-bar{background:var(--header-bg);border-radius:9999px;padding:clamp(.5rem,1vh,.75rem) clamp(1.5rem,3vw,2.5rem);width:62%;max-width:900px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.header-bar h1{font-family:'Bebas Neue',Impact,sans-serif;font-size:clamp(1.125rem,3vw,1.625rem);font-weight:700;color:#fff;letter-spacing:.08em;text-transform:uppercase;line-height:1.2}
+.main-container{display:grid;grid-template-columns:36% 37%;grid-template-rows:auto auto;gap:clamp(1rem,2.5vw,2rem) clamp(2rem,5vw,4rem);justify-content:center;align-content:start;padding:clamp(1.5rem,3vh,2.5rem) clamp(1.5rem,3vw,3rem) clamp(3rem,6vh,5rem);min-height:calc(100vh-120px)}
+.box{background:var(--border-color);border-radius:clamp(16px,3vw,24px);overflow:hidden;display:flex;flex-direction:column}
+.box-inner{background:var(--inner-white);border-radius:calc(clamp(16px,3vw,24px)-8px);margin:18px;flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.box-title{padding:clamp(.75rem,1.5vh,1rem) clamp(1rem,2vw,1.5rem);font-size:clamp(.875rem,1.8vw,1rem);font-weight:600;text-align:center;color:var(--text-black);border-bottom:2px solid var(--border-color);flex-shrink:0}
+.box-content{flex:1;padding:clamp(1rem,2vh,1.5rem);overflow:auto;display:flex;flex-direction:column}
+.box-1{grid-row:1/3;grid-column:1;min-height:100%;height:100%}
+.box-1 .box-content{padding:0.5}
+.textarea-wrapper{flex:1;display:flex;flex-direction:column;min-height:0}
+#inputTextarea{flex:1;border:none;outline:none;resize:none;font-family:'Monaco','Menlo','Ubuntu Mono',monospace;font-size:clamp(.75rem,1.5vw,.875rem);line-height:1.6;padding:clamp(1rem,2vh,1.25rem);color:var(--text-black);background:transparent;min-height:0}
+#inputTextarea::placeholder{color:#999}
+.box-1-actions{display:flex;justify-content:center;gap:clamp(.75rem,1.5vw,1rem);padding:clamp(.75rem,1.5vh,1rem);border-top:2px solid var(--border-color);flex-shrink:0}
+.btn{background:var(--border-color);color:#fff;border:none;border-radius:9999px;padding:clamp(.5rem,1vh,.625rem) clamp(1.25rem,2.5vw,1.75rem);font-size:clamp(.8rem,1.5vw,.875rem);font-weight:500;cursor:pointer;transition:background .2s,transform .1s;white-space:nowrap}
+.btn:hover:not(:disabled){background:#0b7417}
+.btn:active:not(:disabled){transform:scale(.98)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-secondary{background:transparent;color:var(--border-color);border:2px solid var(--border-color)}
+.btn-secondary:hover:not(:disabled){background:var(--border-color);color:#fff}
+.btn-danger{background:var(--danger)}
+.btn-danger:hover:not(:disabled){background:#8f0f1e}
+.box-2{grid-row:1;grid-column:2;min-height:22vh}
+.identified-line{flex:1;display:flex;flex-direction:column;justify-content:center;padding:clamp(1rem,2vh,1.5rem)}
+.line-number-badge{display:inline-block;background:var(--border-color);color:#fff;border-radius:9999px;padding:.25rem .75rem;font-size:clamp(.7rem,1.3vw,.8rem);font-weight:600;font-family:monospace;margin-bottom:clamp(.75rem,1.5vh,1rem);width:fit-content;align-self:center}
+.line-content{font-family:monospace;font-size:clamp(.8rem,1.5vw,.9rem);line-height:1.5;color:var(--text-black);word-break:break-all;white-space:pre-wrap;text-align:center;padding:clamp(.5rem,1vh,.75rem);background:var(--highlight-bg);border:2px solid var(--highlight-border);border-radius:clamp(8px,1.5vw,12px)}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#888;text-align:center;gap:.5rem}
+.empty-state svg{width:clamp(2rem,4vw,3rem);height:clamp(2rem,4vw,3rem);opacity:.5}
+.box-3{grid-row:2;grid-column:2;min-height:35vh}
+.context-lines{flex:1;display:flex;flex-direction:column;gap:.25rem;overflow-y:auto;padding-right:.5rem}
+.context-line{display:flex;gap:clamp(.75rem,1.5vw,1rem);padding:clamp(.375rem,.75vh,.5rem) clamp(.5rem,1vw,.75rem);border-radius:clamp(6px,1vw,8px);transition:background .15s;font-family:monospace;font-size:clamp(.7rem,1.3vw,.8rem);line-height:1.5}
+.context-line:hover{background:#f5f5f5}
+.context-line.highlighted{background:var(--highlight-bg);border:2px solid var(--highlight-border)}
+.line-num{color:#888;font-weight:500;min-width:clamp(2.5rem,4vw,3.5rem);text-align:right;user-select:none;flex-shrink:0;padding-top:.125rem}
+.context-line.highlighted .line-num{color:#00263b;font-weight:700}
+.line-text{flex:1;word-break:break-all;white-space:pre-wrap;color:var(--text-black)}
+.context-line.highlighted .line-text{color:#00263b;font-weight:500}
+.nav-controls{display:flex;justify-content:center;align-items:center;gap:clamp(.75rem,1.5vw,1rem);padding:clamp(.75rem,1.5vh,1rem);border-top:2px solid var(--border-color);flex-shrink:0}
+.nav-info{font-size:clamp(.75rem,1.5vw,.875rem);color:#666;font-weight:500}
+.criteria-panel{padding:clamp(.75rem,1.5vh,1rem);border-top:2px solid var(--border-color);flex-shrink:0}
+.criteria-title{font-size:clamp(.7rem,1.3vw,.8rem);font-weight:600;color:var(--text-black);margin-bottom:clamp(.5rem,1vh,.75rem);text-align:center;text-transform:uppercase;letter-spacing:.05em}
+.criteria-options{display:flex;flex-direction:column;gap:clamp(.375rem,.75vh,.5rem)}
+.criteria-option{display:flex;align-items:center;gap:clamp(.5rem,1vw,.75rem);font-size:clamp(.7rem,1.3vw,.8rem);color:var(--text-black);cursor:pointer}
+.criteria-option input[type=checkbox]{width:clamp(1rem,2vw,1.125rem);height:clamp(1rem,2vw,1.125rem);accent-color:var(--border-color);cursor:pointer;flex-shrink:0}
+.criteria-option label{cursor:pointer;user-select:none}
+.footer{position:fixed;bottom:clamp(.75rem,1.5vh,1.25rem);right:clamp(1rem,2vw,1.5rem);z-index:100}
+.footer-bar{background:var(--footer-bg);border-radius:9999px;padding:clamp(.375rem,.75vh,.5rem) clamp(1rem,2vw,1.25rem);display:inline-flex;align-items:center;white-space:nowrap}
+.footer-bar a{color:var(--footer-text);text-decoration:none;font-size:clamp(.7rem,1.3vw,.8rem);font-weight:500;transition:opacity .2s}
+.footer-bar a:hover{opacity:.8;text-decoration:underline}
+
+/* Novos estilos */
+.input-method-tabs{display:flex;gap:.5rem;padding:.5rem;border-bottom:2px solid var(--border-color);background:#f8f4ff;flex-shrink:0}
+.tab-btn{flex:1;padding:.5rem 1rem;border:none;background:transparent;color:var(--text-black);font-size:.875rem;font-weight:500;cursor:pointer;border-radius:8px;transition:all .2s}
+.tab-btn:hover{background:#ede8ff}
+.tab-btn.active{background:var(--border-color);color:#fff}
+.tab-btn:focus-visible{outline:3px solid var(--highlight-border);outline-offset:2px}
+.file-drop-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:3px dashed var(--border-color);border-radius:12px;padding:2rem;cursor:pointer;transition:all .2s;min-height:200px;text-align:center;color:#666}
+.file-drop-zone:hover,.file-drop-zone.dragover{border-color:var(--accent-blue);background:#f8f4ff}
+.file-drop-zone:focus-visible{outline:3px solid var(--highlight-border);outline-offset:2px}
+.file-drop-zone svg{color:var(--border-color);margin-bottom:1rem}
+.file-drop-zone p{font-size:.9rem}
+.file-drop-zone strong{color:var(--text-black)}
+.file-info{margin-top:1rem;padding:.75rem;background:#f0fdf4;border:1px solid #00263b;border-radius:8px;font-size:.85rem;color:#166534}
+.progress-container{padding:.75rem 1rem;border-top:2px solid var(--border-color);flex-shrink:0}
+.progress-bar{height:8px;background:#00263b;border-radius:4px;overflow:hidden;margin-bottom:.5rem}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--border-color),var(--accent-blue));border-radius:4px;transition:width .2s;width:0%}
+.progress-text{display:flex;justify-content:space-between;font-size:.75rem;color:#666}
+.stats-panel{padding:.75rem 1rem;border-top:2px solid var(--border-color);flex-shrink:0}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
+.stat-item{background:#8f0f1e;padding:.75rem;border-radius:8px;text-align:center}
+.stat-label{display:block;font-size:.7rem;color:#ffff;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem}
+.stat-value{font-size:1.25rem;font-weight:700;color:#ffff(--border-color);font-family:monospace}
+.heads-up-box {
+            /* Estilo da caixa */
+            background-color: #eff0f2; /* Cor de fundo amarelada (alerta) */
+            border-left: 6px solid #00263b; /* Barra lateral que chama a atenção */
+            color: #8f0f1e; /* Cor do texto combinando com o alerta */
+            
+            /* Espaçamento e bordas */
+            padding: 15px 20px;
+            margin: 20px 0;
             border-radius: 4px;
+            
+            /* Tipografia */
+            font-family: sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: #4a2ec4;
+        .heads-up-box strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 16px;
         }
-
-        /* Focus States */
-        .btn:focus-visible,
-        #inputTextarea:focus-visible,
-        .criteria-option input:focus-visible {
-            outline: 3px solid var(--highlight-border);
-            outline-offset: 2px;
-        }
-
-        /* Reduced Motion */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                transition: none !important;
-            }
-        }
-    </style>
+@media(max-width:1024px){.main-container{grid-template-columns:1fr;grid-template-rows:auto auto auto;gap:clamp(1rem,2vh,1.5rem);padding:clamp(1rem,2vh,1.5rem)}.box-1{grid-row:1;grid-column:1;min-height:50vh;height:50vh}.box-2{grid-row:2;grid-column:1;min-height:18vh}.box-3{grid-row:3;grid-column:1;min-height:30vh}.header-bar{width:85%}}
+@media(max-width:600px){.header-bar{width:95%;border-radius:clamp(12px,3vw,16px)}.main-container{padding:clamp(.75rem,2vw,1rem);gap:clamp(.75rem,1.5vh,1rem)}.box{border-radius:clamp(12px,3vw,16px)}.box-inner{border-radius:calc(clamp(12px,3vw,16px)-6px);margin:6px}.footer{bottom:clamp(.5rem,1vh,.75rem);right:clamp(.5rem,1vw,.75rem);left:clamp(.5rem,1vw,.75rem)}.footer-bar{width:100%;justify-content:center}.box-1{min-height:40vh;height:40vh}.box-2{min-height:15vh}.box-3{min-height:25vh}.criteria-options{flex-direction:row;flex-wrap:wrap;justify-content:center}}
+@media(max-width:400px){.box-title{font-size:.8rem;padding:.625rem}.btn{padding:.5rem 1rem;font-size:.75rem}.nav-controls{flex-wrap:wrap}}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border-color);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#4a2ec4}
+.btn:focus-visible,#inputTextarea:focus-visible,.criteria-option input:focus-visible{outline:3px solid var(--highlight-border);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}.progress-fill{transition:none}}
+</style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-bar" role="banner">
-            <h1>VERIFICADOR DE QUEBRAS DE LINHA</h1>
-        </div>
-    </header>
+<header class="header"><div class="header-bar" role="banner"><h1>VERIFICADOR DE QUEBRAS DE LINHA</h1></div></header>
+<main class="main-container" role="main">
+<section class="box box-1" aria-labelledby="box1-title">
+<div class="box-inner">
+<h2 class="box-title" id="box1-title">Entrada dos dados posicionais</h2>
+<div class="box-content">
+<div class="textarea-wrapper">
+<div class="input-method-tabs" role="tablist" aria-label="Método de entrada">
+<button role="tab" id="tabPaste" class="tab-btn active" aria-selected="true" aria-controls="panelPaste">Colar Texto</button>
+<button role="tab" id="tabFile" class="tab-btn" aria-selected="false" aria-controls="panelFile">Arquivo</button>
+</div>
+<div role="tabpanel" id="panelPaste" aria-labelledby="tabPaste">
+<textarea id="inputTextarea" placeholder="Cole aqui o conteúdo completo do arquivo de integração&#10;As quebras de linha, espaços e caracteres serão preservados fielmente&#10;&#10;Exemplo de formato posicional:&#10;0001JOÃO SILVA          25 1234.56&#10;0002MARIA SANTOS         30 9876.54&#10;0003PEDRO OLIVEIRA       45 5555.00" aria-label="Área de texto para colar o conteúdo do arquivo posicional" spellcheck="false"></textarea>
+</div>
+<div role="tabpanel" id="panelFile" aria-labelledby="tabFile" hidden>
+<div class="file-drop-zone" id="fileDropZone" tabindex="0" role="button" aria-label="Soltar arquivo aqui ou clicar para selecionar">
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+<p>Arraste um arquivo <strong>.txt, .csv, .dat</strong> aqui ou clique para selecionar</p>
+<input type="file" id="fileInput" accept=".txt,.csv,.dat,text/*" style="display:none" aria-label="Selecionar arquivo">
+</div>
+<p id="fileInfo" class="file-info" hidden></p>
+</div>
+</div>
+<div class="box-1-actions">
+<button class="btn" id="btnAnalyze" aria-label="Analisar o texto em busca de quebras de linha suspeitas">Analisar</button>
+<button class="btn btn-secondary" id="btnClear" aria-label="Limpar a área de texto">Limpar</button>
+</div>
+</div>
+<div class="criteria-panel">
+<div class="criteria-title">Critérios de validação</div>
+<div class="criteria-options">
+<div class="criteria-option"><input type="checkbox" id="criteriaIndent" checked><label for="criteriaIndent">Detectar indentação inesperada (espaços/tabs no início da linha)</label></div>
+<div class="criteria-option"><input type="checkbox" id="criteriaFixedWidth" checked><label for="criteriaFixedWidth">Largura fixa por registro (mesmo número de caracteres)</label></div>
+<div class="criteria-option"><input type="checkbox" id="criteriaEmptyLines" checked><label for="criteriaEmptyLines">Linhas vazias entre registros</label></div>
+<div class="criteria-option"><input type="checkbox" id="criteriaTruncated" checked><label for="criteriaTruncated">Linhas truncadas (corte abrupto)</label></div>
+<div class="criteria-option"><input type="checkbox" id="criteriaEncoding" checked><label for="criteriaEncoding">Caracteres de codificação suspeitos (�, \r solto, controles)</label></div>
+</div>
+</div>
+<div class="stats-panel" id="statsPanel" style="display:none"><div class="criteria-title">Estatísticas do Arquivo</div><div class="stats-grid"><div class="stat-item"><span class="stat-label">Linhas</span><span class="stat-value" id="statLines">0</span></div><div class="stat-item"><span class="stat-label">Problemas</span><span class="stat-value" id="statIssues">0</span></div><div class="stat-item"><span class="stat-label">Tamanho</span><span class="stat-value" id="statSize">0 B</span></div><div class="stat-item"><span class="stat-label">Tempo</span><span class="stat-value" id="statTime">0 ms</span></div></div></div>
+</div></section>
 
-    <!-- Main Content -->
-    <main class="main-container" role="main">
-        <!-- Box 1: Input Area -->
-        <section class="box box-1" aria-labelledby="box1-title">
-            <div class="box-inner">
-                <h2 class="box-title" id="box1-title">Entrada dos dados posicionais</h2>
-                <div class="box-content">
-                    <div class="textarea-wrapper">
-                        <textarea
-                            id="inputTextarea"
-                            placeholder="Cole aqui o conteúdo completo do arquivo de integração&#10;As quebras de linha, espaços e caracteres serão preservados fielmente&#10;&#10;Exemplo de formato posicional:&#10;0001JOÃO SILVA          25 1234.56&#10;0002MARIA SANTOS         30 9876.54&#10;0003PEDRO OLIVEIRA       45 5555.00"
-                            aria-label="Área de texto para colar o conteúdo do arquivo posicional"
-                            spellcheck="false"
-                        ></textarea>
-                    </div>
-                    <div class="box-1-actions">
-                        <button class="btn" id="btnAnalyze" aria-label="Analisar o texto em busca de quebras de linha suspeitas">
-                            Analisar
-                        </button>
-                        <button class="btn btn-secondary" id="btnClear" aria-label="Limpar a área de texto">
-                            Limpar
-                        </button>
-                    </div>
-                </div>
-                <div class="criteria-panel">
-                    <div class="criteria-title">Critérios de validação</div>
-                    <div class="criteria-options">
-                        <div class="criteria-option">
-                            <input type="checkbox" id="criteriaIndent" checked>
-                            <label for="criteriaIndent">Detectar indentação inesperada (espaços/tabs no início da linha)</label>
-                        </div>
-                        <div class="criteria-option">
-                            <input type="checkbox" id="criteriaFixedWidth" checked>
-                            <label for="criteriaFixedWidth">Largura fixa por registro (mesmo número de caracteres)</label>
-                        </div>
-                        <div class="criteria-option">
-                            <input type="checkbox" id="criteriaEmptyLines" checked>
-                            <label for="criteriaEmptyLines">Linhas vazias entre registros</label>
-                        </div>
-                        <div class="criteria-option">
-                            <input type="checkbox" id="criteriaTruncated" checked>
-                            <label for="criteriaTruncated">Linhas truncadas (corte abrupto)</label>
-                        </div>
-                        <div class="criteria-option">
-                            <input type="checkbox" id="criteriaEncoding" checked>
-                            <label for="criteriaEncoding">Caracteres de codificação suspeitos (�, \r solto, controles)</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+<aside class="heads-up-box">
+        <strong>OBSERVAÇÃO:</strong>
+        Os filtros "Detectar indentação inesperada" e "Linhas vazias entre registros" quase sempre encontram a maioria das quebras de linhas.
+    </aside>
 
-        <!-- Box 2: Identified Line -->
-        <section class="box box-2" aria-labelledby="box2-title" aria-live="polite">
-            <div class="box-inner">
-                <h2 class="box-title" id="box2-title">Linha identificada</h2>
-                <div class="box-content">
-                    <div id="identifiedLineContainer">
-                        <div class="empty-state" id="emptyState2">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                            <span>Nenhuma ocorrência detectada</span>
-                            <small>Clique em "Analisar" após colar o conteúdo</small>
-                        </div>
-                        <div class="identified-line" id="identifiedLineDisplay" style="display: none;">
-                            <span class="line-number-badge" id="identifiedLineNumber">Linha 0</span>
-                            <div class="line-content" id="identifiedLineContent"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+<section class="box box-2" aria-labelledby="box2-title" aria-live="polite">
+<div class="box-inner"><h2 class="box-title" id="box2-title">Linha identificada</h2>
+<div class="box-content"><div id="identifiedLineContainer">
+<div class="empty-state" id="emptyState2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span>Nenhuma ocorrência detectada</span><small>Clique em "Analisar" após colar o conteúdo</small></div>
+<div class="identified-line" id="identifiedLineDisplay" style="display:none"><span class="line-number-badge" id="identifiedLineNumber">Linha 0</span><div class="line-content" id="identifiedLineContent"></div></div>
+</div></div></div></section>
 
-        <!-- Box 3: Context -->
-        <section class="box box-3" aria-labelledby="box3-title" aria-live="polite">
-            <div class="box-inner">
-                <h2 class="box-title" id="box3-title">Contexto da ocorrência</h2>
-                <div class="box-content">
-                    <div class="context-lines" id="contextLinesContainer" role="list" aria-label="Linhas de contexto ao redor da ocorrência">
-                        <div class="empty-state" id="emptyState3" style="height: 100%;">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="9" y1="9" x2="15" y2="15"></line>
-                                <line x1="15" y1="9" x2="9" y2="15"></line>
-                            </svg>
-                            <span>Selecione uma ocorrência para ver o contexto</span>
-                        </div>
-                    </div>
-                    <div class="nav-controls" id="navControls" style="display: none;">
-                        <button class="btn btn-secondary" id="btnPrev" aria-label="Ocorrência anterior" disabled>
-                            ← Anterior
-                        </button>
-                        <span class="nav-info" id="navInfo">1 de 1</span>
-                        <button class="btn btn-secondary" id="btnNext" aria-label="Próxima ocorrência" disabled>
-                            Próxima →
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
+<section class="box box-3" aria-labelledby="box3-title" aria-live="polite">
+<div class="box-inner"><h2 class="box-title" id="box3-title">Contexto da ocorrência</h2>
+<div class="box-content"><div class="context-lines" id="contextLinesContainer" role="list" aria-label="Linhas de contexto ao redor da ocorrência"><div class="empty-state" id="emptyState3" style="height:100%"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg><span>Selecione uma ocorrência para ver o contexto</span></div></div>
+<div class="nav-controls" id="navControls" style="display:none"><button class="btn btn-secondary" id="btnPrev" aria-label="Ocorrência anterior" disabled>← Anterior</button><span class="nav-info" id="navInfo">1 de 1</span><button class="btn btn-secondary" id="btnNext" aria-label="Próxima ocorrência" disabled>Próxima →</button></div></div></div></section>
+</main>
+<footer class="footer" role="contentinfo"><div class="footer-bar"><a href="https://github.com/pauludelimaa" target="_blank" rel="noopener noreferrer">Desenvolvido por https://github.com/pauludelimaa</a></div></footer>
 
-    <!-- Footer -->
-    <footer class="footer" role="contentinfo">
-        <div class="footer-bar">
-            <a href="https://github.com/pauludelimaa" target="_blank" rel="noopener noreferrer">
-                Desenvolvido por https://github.com/pauludelimaa
-            </a>
-        </div>
-    </footer>
+<script>
+// ========== CONSTANTES & REGEX COMPILADAS ==========
+const NUMERIC_END_REGEX = /\d[\d.,]*\s*$/;
+const SUSPICIOUS_CHARS_REGEX = /[�\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 
-    <script>
-        // Estado da aplicação
-        const state = {
-            lines: [],
-            issues: [],
-            currentIssueIndex: -1,
-            criteria: {
-                indent: true,
-                fixedWidth: true,
-                emptyLines: true,
-                truncated: true,
-                encoding: true
-            }
-        };
+// ========== ESTADO ==========
+const state = {
+  lines: [], issues: [], currentIssueIndex: -1, stats: null,
+  fileContent: null, currentFile: null, worker: null,
+  isProcessing: false
+};
 
-        // Elementos DOM
-        const elements = {
-            textarea: document.getElementById('inputTextarea'),
-            btnAnalyze: document.getElementById('btnAnalyze'),
-            btnClear: document.getElementById('btnClear'),
-            btnPrev: document.getElementById('btnPrev'),
-            btnNext: document.getElementById('btnNext'),
-            identifiedLineContainer: document.getElementById('identifiedLineContainer'),
-            identifiedLineDisplay: document.getElementById('identifiedLineDisplay'),
-            identifiedLineNumber: document.getElementById('identifiedLineNumber'),
-            identifiedLineContent: document.getElementById('identifiedLineContent'),
-            contextLinesContainer: document.getElementById('contextLinesContainer'),
-            emptyState2: document.getElementById('emptyState2'),
-            emptyState3: document.getElementById('emptyState3'),
-            navControls: document.getElementById('navControls'),
-            navInfo: document.getElementById('navInfo'),
-            criteriaIndent: document.getElementById('criteriaIndent'),
-            criteriaFixedWidth: document.getElementById('criteriaFixedWidth'),
-            criteriaEmptyLines: document.getElementById('criteriaEmptyLines'),
-            criteriaTruncated: document.getElementById('criteriaTruncated'),
-            criteriaEncoding: document.getElementById('criteriaEncoding')
-        };
+const criteriaState = {
+  indent: true, fixedWidth: true, emptyLines: true, truncated: true, encoding: true
+};
 
-        // Inicialização
-        function init() {
-            bindEvents();
-            loadExample();
-        }
+// ========== ELEMENTOS DOM ==========
+const el = {
+  textarea: document.getElementById('inputTextarea'),
+  btnAnalyze: document.getElementById('btnAnalyze'),
+  btnClear: document.getElementById('btnClear'),
+  btnPrev: document.getElementById('btnPrev'),
+  btnNext: document.getElementById('btnNext'),
+  identifiedLineContainer: document.getElementById('identifiedLineContainer'),
+  identifiedLineDisplay: document.getElementById('identifiedLineDisplay'),
+  identifiedLineNumber: document.getElementById('identifiedLineNumber'),
+  identifiedLineContent: document.getElementById('identifiedLineContent'),
+  contextLinesContainer: document.getElementById('contextLinesContainer'),
+  emptyState2: document.getElementById('emptyState2'),
+  emptyState3: document.getElementById('emptyState3'),
+  navControls: document.getElementById('navControls'),
+  navInfo: document.getElementById('navInfo'),
+  tabPaste: document.getElementById('tabPaste'),
+  tabFile: document.getElementById('tabFile'),
+  panelPaste: document.getElementById('panelPaste'),
+  panelFile: document.getElementById('panelFile'),
+  fileDropZone: document.getElementById('fileDropZone'),
+  fileInput: document.getElementById('fileInput'),
+  fileInfo: document.getElementById('fileInfo'),
+  statsPanel: document.getElementById('statsPanel'),
+  statLines: document.getElementById('statLines'),
+  statIssues: document.getElementById('statIssues'),
+  statSize: document.getElementById('statSize'),
+  statTime: document.getElementById('statTime'),
+  progressContainer: null, progressFill: null, progressStatus: null, progressPercent: null, btnCancel: null
+};
 
-        function bindEvents() {
-            elements.btnAnalyze.addEventListener('click', analyze);
-            elements.btnClear.addEventListener('click', clearAll);
-            elements.btnPrev.addEventListener('click', showPreviousIssue);
-            elements.btnNext.addEventListener('click', showNextIssue);
+// ========== UTILITÁRIOS ==========
+const formatFileSize = bytes => bytes < 1024 ? bytes + ' B' : bytes < 1024**2 ? (bytes/1024).toFixed(1)+' KB' : bytes < 1024**3 ? (bytes/1024**2).toFixed(1)+' MB' : (bytes/1024**3).toFixed(1)+' GB';
 
-            // Critérios
-            elements.criteriaIndent.addEventListener('change', updateCriteria);
-            elements.criteriaFixedWidth.addEventListener('change', updateCriteria);
-            elements.criteriaEmptyLines.addEventListener('change', updateCriteria);
-            elements.criteriaTruncated.addEventListener('change', updateCriteria);
-            elements.criteriaEncoding.addEventListener('change', updateCriteria);
+// ========== PRECOMPUTE STATS - O(n) SINGLE PASS ==========
+function precomputeStats(lines, criteria) {
+  const stats = {
+    nonEmptyIndices: [], nonEmptyLengths: [], firstCharPositions: [],
+    expectedColumn: null, expectedLength: null, allEndWithNumeric: true,
+    hasSuspiciousChars: new Uint8Array(lines.length), // Uint8Array economiza memória
+    suspiciousCharDetails: new Array(lines.length)
+  };
 
-            // Re-analisar ao mudar critérios se já houver texto
-            [elements.criteriaIndent, elements.criteriaFixedWidth, elements.criteriaEmptyLines, elements.criteriaTruncated, elements.criteriaEncoding].forEach(el => {
-                el.addEventListener('change', () => {
-                    if (elements.textarea.value.trim()) {
-                        analyze();
-                    }
-                });
-            });
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
 
-            // Atalhos de teclado
-            document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && e.key === 'Enter') {
-                    e.preventDefault();
-                    analyze();
-                }
-                if (e.key === 'F3' || (e.ctrlKey && e.key === 'n')) {
-                    e.preventDefault();
-                    showNextIssue();
-                }
-                if (e.key === 'F3' && e.shiftKey || (e.ctrlKey && e.shiftKey && e.key === 'n')) {
-                    e.preventDefault();
-                    showPreviousIssue();
-                }
-            });
-        }
+    if (trimmed.length) {
+      stats.nonEmptyIndices.push(i);
+      stats.nonEmptyLengths.push(line.length);
+      const fc = line.search(/\S/);
+      if (fc >= 0) stats.firstCharPositions.push(fc);
+      if (!NUMERIC_END_REGEX.test(line)) stats.allEndWithNumeric = false;
+    }
 
-        function updateCriteria() {
-            state.criteria = {
-                indent: elements.criteriaIndent.checked,
-                fixedWidth: elements.criteriaFixedWidth.checked,
-                emptyLines: elements.criteriaEmptyLines.checked,
-                truncated: elements.criteriaTruncated.checked,
-                encoding: elements.criteriaEncoding.checked
-            };
-        }
+    if (criteria.encoding) {
+      const suspicious = line.match(SUSPICIOUS_CHARS_REGEX);
+      const hasLoneCR = line.includes('\r') && !line.includes('\r\n');
+      if (suspicious || hasLoneCR) {
+        stats.hasSuspiciousChars[i] = 1;
+        stats.suspiciousCharDetails[i] = { suspicious, hasLoneCR };
+      }
+    }
+  }
 
-        function loadExample() {
-            const example = `0001JOÃO SILVA          25 1234.56
+  if (criteria.indent && stats.firstCharPositions.length) {
+    let minColumn = Infinity;
+    for (const position of stats.firstCharPositions) {
+      if (position < minColumn) minColumn = position;
+    }
+    stats.expectedColumn = minColumn;
+  }
+  if (criteria.fixedWidth && stats.nonEmptyLengths.length) stats.expectedLength = stats.nonEmptyLengths[0];
+  return stats;
+}
+
+// ========== DETECT ISSUES - O(n) USANDO STATS ==========
+function detectIssues(lines, stats, criteria) {
+  const issues = [];
+  const { nonEmptyIndices, expectedColumn, expectedLength, allEndWithNumeric } = stats;
+  const nonEmptySet = new Set(nonEmptyIndices);
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!trimmed && !criteria.emptyLines && !criteria.encoding) continue; // otimização: pula linha vazia se critérios não precisam dela
+
+    const lineIssues = [];
+
+    if (criteria.indent && trimmed && expectedColumn !== null) {
+      const fc = line.search(/\S/);
+      if (fc > expectedColumn) lineIssues.push({type:'indent', message:`Indentação inesperada: ${fc-expectedColumn} espaços`, severity:'error'});
+    }
+    if (criteria.fixedWidth && trimmed && expectedLength !== null && line.length !== expectedLength) {
+      lineIssues.push({type:'fixedWidth', message:`Largura inconsistente (esperado ${expectedLength}, encontrado ${line.length})`, severity:'warning'});
+    }
+    if (criteria.emptyLines && !trimmed) {
+      if (nonEmptySet.has(i-1) && nonEmptySet.has(i+1)) lineIssues.push({type:'emptyLines', message:'Linha vazia inesperada entre registros', severity:'error'});
+    }
+    if (criteria.truncated && trimmed && allEndWithNumeric && !NUMERIC_END_REGEX.test(line) && expectedLength && line.length < expectedLength) {
+      lineIssues.push({type:'truncated', message:'Possível linha truncada', severity:'error'});
+    }
+    if (criteria.encoding && stats.hasSuspiciousChars[i]) {
+      const {suspicious, hasLoneCR} = stats.suspiciousCharDetails[i];
+      if (suspicious) {
+        const chars = [...new Set(suspicious)].map(c => c==='\r'?'\\r':c==='�'?'�':'U+'+c.charCodeAt(0).toString(16).toUpperCase().padStart(4,'0')).join(', ');
+        lineIssues.push({type:'encoding', message:`Caracteres suspeitos: ${chars}`, severity:'error'});
+      }
+      if (hasLoneCR) lineIssues.push({type:'encoding', message:'CR (\\r) solto detectado', severity:'warning'});
+    }
+    if (lineIssues.length) issues.push({lineNumber:i+1, lineContent:line, issues:lineIssues});
+  }
+  return issues;
+}
+
+// ========== WORKER CODE (inline) ==========
+const WORKER_CODE = `
+const NUMERIC_END_REGEX = /\\d[\\d.,]*\\s*$/;
+const SUSPICIOUS_CHARS_REGEX = /[�\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/g;
+
+function precomputeStats(lines, criteria) {
+  const stats = { nonEmptyIndices:[], nonEmptyLengths:[], firstCharPositions:[], expectedColumn:null, expectedLength:null, allEndWithNumeric:true, hasSuspiciousChars:new Uint8Array(lines.length), suspiciousCharDetails:new Array(lines.length) };
+  for(let i=0;i<lines.length;i++){const l=lines[i],t=l.trim();if(t.length){stats.nonEmptyIndices.push(i);stats.nonEmptyLengths.push(l.length);const fc=l.search(/\\S/);if(fc>=0)stats.firstCharPositions.push(fc);if(!NUMERIC_END_REGEX.test(l))stats.allEndWithNumeric=false}if(criteria.encoding){const s=l.match(SUSPICIOUS_CHARS_REGEX);const h=l.includes('\\r')&&!l.includes('\\r\\n');if(s||h){stats.hasSuspiciousChars[i]=1;stats.suspiciousCharDetails[i]={suspicious:s,hasLoneCR:h}}}}
+  if(criteria.indent&&stats.firstCharPositions.length){let minColumn=Infinity;for(const position of stats.firstCharPositions){if(position<minColumn)minColumn=position;}stats.expectedColumn=minColumn;}
+  if(criteria.fixedWidth&&stats.nonEmptyLengths.length)stats.expectedLength=stats.nonEmptyLengths[0];
+  return stats;
+}
+function detectIssues(lines,stats,criteria){const issues=[];const{nonEmptyIndices,expectedColumn,expectedLength,allEndWithNumeric}=stats;const nes=new Set(nonEmptyIndices);
+for(let i=0;i<lines.length;i++){const l=lines[i],t=l.trim();if(!t&&!criteria.emptyLines&&!criteria.encoding)continue;const li=[];
+if(criteria.indent&&t&&expectedColumn!==null){const fc=l.search(/\\S/);if(fc>expectedColumn)li.push({type:'indent',message:'Indentação inesperada: '+(fc-expectedColumn)+' espaços',severity:'error'})}
+if(criteria.fixedWidth&&t&&expectedLength!==null&&l.length!==expectedLength)li.push({type:'fixedWidth',message:'Largura inconsistente (esperado '+expectedLength+', encontrado '+l.length+')',severity:'warning'})
+if(criteria.emptyLines&&!t){if(nes.has(i-1)&&nes.has(i+1))li.push({type:'emptyLines',message:'Linha vazia inesperada entre registros',severity:'error'})}
+if(criteria.truncated&&t&&allEndWithNumeric&&!NUMERIC_END_REGEX.test(l)&&expectedLength&&l.length<expectedLength)li.push({type:'truncated',message:'Possível linha truncada',severity:'error'})
+if(criteria.encoding&&stats.hasSuspiciousChars[i]){const{suspicious,hasLoneCR}=stats.suspiciousCharDetails[i];if(suspicious){const cs=[...new Set(suspicious)].map(c=>c==='\\r'?'\\\\r':c==='�'?'�':'U+'+c.charCodeAt(0).toString(16).toUpperCase().padStart(4,'0')).join(', ');li.push({type:'encoding',message:'Caracteres suspeitos: '+cs,severity:'error'})}if(hasLoneCR)li.push({type:'encoding',message:'CR (\\\\r) solto detectado',severity:'warning'})}
+if(li.length)issues.push({lineNumber:i+1,lineContent:l,issues:li})}return issues}
+self.onmessage=e=>{try{const{lines,criteria}=e.data;const stats=precomputeStats(lines,criteria);const issues=detectIssues(lines,stats,criteria);self.postMessage({type:'done',issues,stats})}catch(err){self.postMessage({type:'error',message:err.message})}};`;
+
+// ========== UI HELPERS ==========
+function switchTab(tab){
+  const isPaste = tab==='paste';
+  el.tabPaste.classList.toggle('active',isPaste); el.tabPaste.setAttribute('aria-selected',isPaste);
+  el.tabFile.classList.toggle('active',!isPaste); el.tabFile.setAttribute('aria-selected',!isPaste);
+  el.panelPaste.hidden=!isPaste; el.panelFile.hidden=isPaste;
+  if (isPaste) el.textarea.focus();
+}
+function getInputText(){return el.panelFile.hidden ? el.textarea.value : (state.fileContent ?? '');}
+function showProgress(){
+  hideProgress();
+  const html=`<div class="progress-container" id="progressContainer"><div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div><div class="progress-text"><span id="progressStatus">Processando arquivo grande...</span><span id="progressPercent">0%</span></div><button class="btn btn-danger" id="btnCancel" style="margin-top:.5rem;width:100%">Cancelar</button></div>`;
+  el.btnAnalyze.parentElement.insertAdjacentHTML('beforebegin',html);
+  el.progressContainer=document.getElementById('progressContainer');
+  el.progressFill=document.getElementById('progressFill');
+  el.progressStatus=document.getElementById('progressStatus');
+  el.progressPercent=document.getElementById('progressPercent');
+  el.btnCancel=document.getElementById('btnCancel');
+  el.btnCancel.onclick=cancelAnalysis;
+}
+function hideProgress(){if(el.progressContainer){el.progressContainer.remove();el.progressContainer=el.progressFill=el.progressStatus=el.progressPercent=el.btnCancel=null;}}
+function cancelAnalysis(){if(state.worker){state.worker.terminate();state.worker=null;}state.isProcessing=false;hideProgress();el.btnAnalyze.disabled=false;el.btnAnalyze.textContent='Analisar';alert('Análise cancelada');}
+function updateStatsPanel(ms){
+  el.statsPanel.style.display='block';
+  el.statLines.textContent=state.lines.length.toLocaleString('pt-BR');
+  el.statIssues.textContent=state.issues.length.toLocaleString('pt-BR');
+  el.statSize.textContent=formatFileSize(state.currentFile?.size ?? new Blob([state.lines.join('\n')]).size);
+  el.statTime.textContent=Math.round(ms)+' ms';
+}
+
+// ========== ANÁLISE SÍNCRONA (pequenos) ==========
+function analyzeSync(){
+  const start=performance.now();
+  state.stats=precomputeStats(state.lines,criteriaState);
+  state.issues=detectIssues(state.lines,state.stats,criteriaState);
+  state.isProcessing=false;
+  updateStatsPanel(performance.now()-start);
+  requestAnimationFrame(renderResults);
+}
+
+// ========== ANÁLISE COM WORKER (grandes) ==========
+function analyzeWithWorker(){
+  const start=performance.now();
+  showProgress();
+  el.btnAnalyze.disabled=true; el.btnAnalyze.textContent='Analisando...';
+  state.isProcessing=true;
+
+  const blob=new Blob([WORKER_CODE],{type:'application/javascript'});
+  state.worker=new Worker(URL.createObjectURL(blob));
+
+  state.worker.onmessage=e=>{
+    hideProgress(); el.btnAnalyze.disabled=false; el.btnAnalyze.textContent='Analisar'; state.isProcessing=false;
+    if(e.data.type==='done'){state.stats=e.data.stats;state.issues=e.data.issues;updateStatsPanel(performance.now()-start);requestAnimationFrame(renderResults);}
+    else if(e.data.type==='error'){alert('Erro na análise: '+e.data.message);}
+    state.worker.terminate();state.worker=null;
+  };
+  state.worker.onerror=err=>{hideProgress();el.btnAnalyze.disabled=false;el.btnAnalyze.textContent='Analisar';state.isProcessing=false;alert('Erro no worker: '+err.message);state.worker.terminate();state.worker=null;};
+  state.worker.postMessage({lines:state.lines,criteria:criteriaState});
+}
+
+// ========== ENTRY POINT ==========
+function analyze(){
+  const text=getInputText();
+  if(!text.trim()){alert('Por favor, cole o conteúdo ou selecione um arquivo.');el.textarea.focus();return;}
+  state.lines=text.split('\n');
+  state.issues=[];state.currentIssueIndex=-1;
+
+  const useWorker = state.lines.length>100000 || text.length>10*1024*1024;
+  useWorker ? analyzeWithWorker() : analyzeSync();
+}
+
+function renderResults(){
+  if(state.issues.length){state.currentIssueIndex=0;displayCurrentIssue();}else showNoIssuesFound();
+}
+
+// ========== RENDER ==========
+function displayCurrentIssue(){
+  const issue=state.issues[state.currentIssueIndex];
+  el.emptyState2.style.display='none';el.identifiedLineDisplay.style.display='flex';
+  el.identifiedLineNumber.textContent=`Linha ${issue.lineNumber}`;
+  el.identifiedLineContent.textContent=issue.lineContent||'(linha vazia)';
+  el.emptyState3.style.display='none';renderContext(issue.lineNumber);
+  el.navControls.style.display='flex';updateNavigation();
+}
+function renderContext(center){
+  const c=el.contextLinesContainer;c.innerHTML='';
+  const start=Math.max(1,center-3),end=Math.min(state.lines.length,center+3);
+  const frag=document.createDocumentFragment();
+  for(let i=start;i<=end;i++){
+    const div=document.createElement('div');div.className='context-line'+(i===center?' highlighted':'');div.setAttribute('role','listitem');div.dataset.line=i;
+    const ns=document.createElement('span');ns.className='line-num';ns.textContent=String(i).padStart(4,'0');
+    const ts=document.createElement('span');ts.className='line-text';ts.textContent=state.lines[i-1]||'(fim do arquivo)';
+    div.append(ns,ts);frag.append(div);
+  }c.appendChild(frag);
+}
+function updateNavigation(){el.navInfo.textContent=`${state.currentIssueIndex+1} de ${state.issues.length}`;el.btnPrev.disabled=state.currentIssueIndex===0;el.btnNext.disabled=state.currentIssueIndex===state.issues.length-1;}
+function showNextIssue(){if(state.currentIssueIndex<state.issues.length-1){state.currentIssueIndex++;displayCurrentIssue();}}
+function showPreviousIssue(){if(state.currentIssueIndex>0){state.currentIssueIndex--;displayCurrentIssue();}}
+function showNoIssuesFound(){
+  el.emptyState2.style.display='flex';el.identifiedLineDisplay.style.display='none';
+  el.emptyState2.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg><span>Nenhuma quebra de linha suspeita detectada</span><small>O arquivo parece consistente com os critérios selecionados</small>`;
+  el.emptyState3.style.display='flex';el.contextLinesContainer.innerHTML='';el.contextLinesContainer.appendChild(el.emptyState3);el.navControls.style.display='none';
+}
+function clearAll(){
+  el.textarea.value='';el.fileInput.value='';el.fileInfo.hidden=true;el.fileInfo.textContent='';
+  state.fileContent=null;state.currentFile=null;
+  if(state.worker){state.worker.terminate();state.worker=null;}
+  hideProgress();el.btnAnalyze.disabled=false;el.btnAnalyze.textContent='Analisar';
+  state.lines=[];state.issues=[];state.stats=null;state.currentIssueIndex=-1;
+  el.emptyState2.style.display='flex';el.identifiedLineDisplay.style.display='none';
+  el.emptyState3.style.display='flex';el.contextLinesContainer.innerHTML='';el.contextLinesContainer.appendChild(el.emptyState3);
+  el.navControls.style.display='none';el.statsPanel.style.display='none';
+  el.textarea.focus();
+}
+
+// ========== FILE HANDLING ==========
+function handleFileDrop(file){
+  if(!file)return;
+  const name = file.name.toLowerCase();
+  if(!file.type.startsWith('text/')&&!['.txt','.csv','.dat'].some(ext=>name.endsWith(ext))){alert('Selecione .txt, .csv ou .dat');return;}
+  state.currentFile=file;el.fileInfo.hidden=false;el.fileInfo.textContent=`📄 ${file.name} (${formatFileSize(file.size)})`;
+  const r=new FileReader();r.onload=e=>{state.fileContent=e.target.result;el.btnAnalyze.disabled=false;};r.onerror=()=>alert('Erro ao ler arquivo');r.readAsText(file);
+}
+
+// ========== EVENTOS ==========
+function bindEvents(){
+  el.btnAnalyze.onclick=analyze;el.btnClear.onclick=clearAll;
+  el.btnPrev.onclick=showPreviousIssue;el.btnNext.onclick=showNextIssue;
+  const criteriaKeys = {
+    criteriaIndent: 'indent',
+    criteriaFixedWidth: 'fixedWidth',
+    criteriaEmptyLines: 'emptyLines',
+    criteriaTruncated: 'truncated',
+    criteriaEncoding: 'encoding'
+  };
+  Object.entries(criteriaKeys).forEach(([id, key]) => {
+    const checkbox = document.getElementById(id);
+    checkbox.onchange = () => { criteriaState[key] = checkbox.checked; };
+  });
+  el.tabPaste.onclick=()=>switchTab('paste');el.tabFile.onclick=()=>switchTab('file');
+  el.fileDropZone.onclick=()=>el.fileInput.click();
+  el.fileDropZone.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.fileInput.click();}};
+  el.fileDropZone.ondragover=e=>{e.preventDefault();el.fileDropZone.classList.add('dragover');};
+  el.fileDropZone.ondragleave=()=>el.fileDropZone.classList.remove('dragover');
+  el.fileDropZone.ondrop=e=>{e.preventDefault();el.fileDropZone.classList.remove('dragover');handleFileDrop(e.dataTransfer.files[0]);};
+  el.fileInput.onchange=e=>handleFileDrop(e.target.files[0]);
+  document.addEventListener('keydown',e=>{
+    if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();analyze();}
+    if(e.key==='F3'||(e.ctrlKey&&e.key==='n')){e.preventDefault();showNextIssue();}
+    if((e.shiftKey&&e.key==='F3')||(e.ctrlKey&&e.shiftKey&&e.key==='n')){e.preventDefault();showPreviousIssue();}
+  });
+}
+
+// ========== INIT ==========
+function loadExample(){el.textarea.value=`0001JOÃO SILVA          25 1234.56
 0002MARIA SANTOS         30 9876.54
    0003PEDRO OLIVEIRA       45 5555.00
 0004ANA COSTA            28
 0005CARLOS FERREIRA      35 7777.77
 0006FERNANDA LIMA        42 8888.88
-0007RICARDO ALVES        33 9999.99`;
-            elements.textarea.value = example;
-        }
-
-        function clearAll() {
-            elements.textarea.value = '';
-            resetResults();
-            elements.textarea.focus();
-        }
-
-        function resetResults() {
-            state.lines = [];
-            state.issues = [];
-            state.currentIssueIndex = -1;
-            elements.emptyState2.style.display = 'flex';
-            elements.identifiedLineDisplay.style.display = 'none';
-            elements.emptyState3.style.display = 'flex';
-            elements.contextLinesContainer.innerHTML = '';
-            elements.contextLinesContainer.appendChild(elements.emptyState3);
-            elements.navControls.style.display = 'none';
-        }
-
-        function analyze() {
-            const text = elements.textarea.value;
-            if (!text.trim()) {
-                alert('Por favor, cole o conteúdo do arquivo na área de texto.');
-                elements.textarea.focus();
-                return;
-            }
-
-            // Preservar quebras de linha originais
-            state.lines = text.split('\n');
-            state.issues = [];
-            state.currentIssueIndex = -1;
-
-            // Calcular a coluna esperada (menor índice de primeiro caractere não-espaço entre linhas não-vazias)
-            let expectedColumn = null;
-            if (state.criteria.indent) {
-                const nonEmptyLines = state.lines.filter(l => l.trim().length > 0);
-                if (nonEmptyLines.length > 0) {
-                    const firstCharPositions = nonEmptyLines.map(line => line.search(/\S/));
-                    expectedColumn = Math.min(...firstCharPositions.filter(pos => pos >= 0));
-                }
-            }
-
-            // Analisar cada linha
-            state.lines.forEach((line, index) => {
-                const lineNum = index + 1;
-                const issues = checkLine(line, lineNum, state.lines, expectedColumn);
-                if (issues.length > 0) {
-                    state.issues.push({
-                        lineNumber: lineNum,
-                        lineContent: line,
-                        issues: issues
-                    });
-                }
-            });
-
-            if (state.issues.length > 0) {
-                state.currentIssueIndex = 0;
-                displayCurrentIssue();
-            } else {
-                showNoIssuesFound();
-            }
-        }
-
-        function checkLine(line, lineNum, allLines, expectedColumn) {
-            const issues = [];
-            const criteria = state.criteria;
-
-            // Critério 1: Indentação inesperada (espaços/tabs no início quando deveria começar na coluna 0)
-            if (criteria.indent && line.trim().length > 0 && expectedColumn !== null) {
-                const firstCharPos = line.search(/\S/);
-                if (firstCharPos > expectedColumn) {
-                    const indentSpaces = firstCharPos - expectedColumn;
-                    const indentChar = line.charAt(0) === '\t' ? 'tabs' : 'espaços';
-                    issues.push({
-                        type: 'indent',
-                        message: `Indentação inesperada: ${indentSpaces} ${indentChar} antes do conteúdo (coluna esperada: ${expectedColumn}, encontrada: ${firstCharPos})`,
-                        severity: 'error',
-                        detail: { expectedColumn, foundColumn: firstCharPos, indentSpaces }
-                    });
-                }
-            }
-
-            // Critério 2: Largura fixa (todas as linhas não-vazias devem ter mesmo comprimento)
-            if (criteria.fixedWidth && line.trim().length > 0) {
-                const nonEmptyLines = allLines.filter(l => l.trim().length > 0);
-                if (nonEmptyLines.length > 0) {
-                    const expectedLength = nonEmptyLines[0].length;
-                    if (line.length !== expectedLength) {
-                        issues.push({
-                            type: 'fixedWidth',
-                            message: `Largura inconsistente (esperado ${expectedLength}, encontrado ${line.length})`,
-                            severity: 'warning'
-                        });
-                    }
-                }
-            }
-
-            // Critério 3: Linhas vazias inesperadas
-            if (criteria.emptyLines && line.trim().length === 0) {
-                const prevLine = allLines[lineNum - 2];
-                const nextLine = allLines[lineNum];
-                const hasContentBefore = prevLine !== undefined && prevLine.trim().length > 0;
-                const hasContentAfter = nextLine !== undefined && nextLine.trim().length > 0;
-                if (hasContentBefore && hasContentAfter) {
-                    issues.push({
-                        type: 'emptyLines',
-                        message: 'Linha vazia inesperada entre registros',
-                        severity: 'error'
-                    });
-                }
-            }
-
-            // Critério 4: Linhas truncadas
-            if (criteria.truncated && line.trim().length > 0) {
-                const nonEmptyLines = allLines.filter(l => l.trim().length > 0);
-                if (nonEmptyLines.length > 1) {
-                    const endsWithNumber = /[\d.,]\s*$/.test(line);
-                    const othersEndWithNumber = nonEmptyLines.filter(l => l !== line).every(l => /[\d.,]\s*$/.test(l));
-                    if (othersEndWithNumber && !endsWithNumber && line.length < nonEmptyLines[0].length) {
-                        issues.push({
-                            type: 'truncated',
-                            message: 'Possível linha truncada (não termina com valor numérico esperado)',
-                            severity: 'error'
-                        });
-                    }
-                }
-            }
-
-            // Critério 5: Caracteres de codificação suspeitos
-            if (criteria.encoding) {
-                const suspiciousChars = line.match(/[�\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g);
-                if (suspiciousChars) {
-                    issues.push({
-                        type: 'encoding',
-                        message: `Caracteres suspeitos: ${[...new Set(suspiciousChars)].map(c => c === '\r' ? '\\r' : c === '�' ? '�' : `U+${c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')}`).join(', ')}`,
-                        severity: 'error'
-                    });
-                }
-                if (line.includes('\r') && !line.includes('\r\n')) {
-                    issues.push({
-                        type: 'encoding',
-                        message: 'CR (\\r) solto detectado - quebra de linha Mac OS 9/Windows misturada',
-                        severity: 'warning'
-                    });
-                }
-            }
-
-            return issues;
-        }
-
-        function displayCurrentIssue() {
-            if (state.issues.length === 0) return;
-
-            const issue = state.issues[state.currentIssueIndex];
-            const lineNum = issue.lineNumber;
-            const lineContent = issue.lineContent;
-
-            // Box 2 - Linha identificada
-            elements.emptyState2.style.display = 'none';
-            elements.identifiedLineDisplay.style.display = 'flex';
-            elements.identifiedLineNumber.textContent = `Linha ${lineNum}`;
-            elements.identifiedLineContent.textContent = lineContent || '(linha vazia)';
-
-            // Box 3 - Contexto
-            elements.emptyState3.style.display = 'none';
-            renderContext(lineNum);
-
-            // Navegação
-            elements.navControls.style.display = 'flex';
-            updateNavigation();
-        }
-
-        function renderContext(centerLineNum) {
-            const container = elements.contextLinesContainer;
-            container.innerHTML = '';
-
-            const start = Math.max(1, centerLineNum - 3);
-            const end = Math.min(state.lines.length, centerLineNum + 3);
-
-            for (let i = start; i <= end; i++) {
-                const lineDiv = document.createElement('div');
-                lineDiv.className = 'context-line' + (i === centerLineNum ? ' highlighted' : '');
-                lineDiv.setAttribute('role', 'listitem');
-                lineDiv.setAttribute('data-line', i);
-
-                const numSpan = document.createElement('span');
-                numSpan.className = 'line-num';
-                numSpan.textContent = i.toString().padStart(4, '0');
-
-                const textSpan = document.createElement('span');
-                textSpan.className = 'line-text';
-                textSpan.textContent = state.lines[i - 1] || '(fim do arquivo)';
-
-                lineDiv.appendChild(numSpan);
-                lineDiv.appendChild(textSpan);
-                container.appendChild(lineDiv);
-            }
-        }
-
-        function updateNavigation() {
-            elements.navInfo.textContent = `${state.currentIssueIndex + 1} de ${state.issues.length}`;
-            elements.btnPrev.disabled = state.currentIssueIndex === 0;
-            elements.btnNext.disabled = state.currentIssueIndex === state.issues.length - 1;
-        }
-
-        function showNextIssue() {
-            if (state.currentIssueIndex < state.issues.length - 1) {
-                state.currentIssueIndex++;
-                displayCurrentIssue();
-            }
-        }
-
-        function showPreviousIssue() {
-            if (state.currentIssueIndex > 0) {
-                state.currentIssueIndex--;
-                displayCurrentIssue();
-            }
-        }
-
-        function showNoIssuesFound() {
-            elements.emptyState2.style.display = 'flex';
-            elements.identifiedLineDisplay.style.display = 'none';
-            elements.emptyState2.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                <span>Nenhuma quebra de linha suspeita detectada</span>
-                <small>O arquivo parece consistente com os critérios selecionados</small>
-            `;
-
-            elements.emptyState3.style.display = 'flex';
-            elements.contextLinesContainer.innerHTML = '';
-            elements.contextLinesContainer.appendChild(elements.emptyState3);
-            elements.navControls.style.display = 'none';
-        }
-
-        // Iniciar
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
+0007RICARDO ALVES        33 9999.99`;}
+function initApp(){
+  if (el.btnAnalyze.dataset.initialized === 'true') return;
+  bindEvents();
+  loadExample();
+  el.btnAnalyze.dataset.initialized = 'true';
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initApp, { once: true });
+else initApp();
+</script>
 </body>
 </html>
